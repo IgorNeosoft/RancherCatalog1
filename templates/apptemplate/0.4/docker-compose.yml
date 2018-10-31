@@ -1,0 +1,35 @@
+version: '2'
+services:
+  app:
+    image: igorneosoft/ns-apptemplate
+    environment:
+      - SPRING_PROFILES_ACTIVE=prod,swagger
+      - SPRING_DATASOURCE_URL=jdbc:mariadb://bdd:3306/apptemplate
+      - JHIPSTER_SLEEP=10 # gives time for the database to boot before the application
+    ports:
+      - 80:8080
+    networks:
+      - apptemplate-net
+    labels:
+      traefik.frontend.rule: "Host:app.apptemplate-int.fr"
+      traefik.docker.network: "traefik-net"
+  bdd:
+    image: mariadb:10.1.22
+    volumes:
+      - /neosoft/apptemplate/bdd/:/var/lib/mysql/
+      - /neosoft/apptemplate/sql/:/docker-entrypoint-initdb.d/
+    environment:
+      - MYSQL_USER=root
+      - MYSQL_ALLOW_EMPTY_PASSWORD=yes
+      - MYSQL_DATABASE=apptemplate
+    ports:
+      - 3306:3306
+    command: mysqld --lower_case_table_names=1 --skip-ssl
+    networks:
+      - apptemplate-net
+    labels:
+      traefik.enable: "false"
+
+networks:
+  apptemplate-net:
+    driver: bridge
